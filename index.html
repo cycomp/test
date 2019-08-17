@@ -209,8 +209,8 @@
 	
 	
 	function saveData() {
-		localStorage.setItem("temp_globalObj") = JSON.stringify(globalObj);
-		localStorage.setItem("temp_dataArray") = JSON.stringify(dataArray);
+		localStorage.setItem("temp_globalObj", JSON.stringify(globalObj)); 
+		localStorage.setItem("temp_dataArray", JSON.stringify(dataArray));
 	}
 	
 	function connectHR() {
@@ -352,8 +352,8 @@
 			var averageSpeedDisplay = document.getElementById("avg_speed");
 			averageSpeedDisplay.innerHTML = averageSpeedText+"kph";
 		}
-		if(globalObject.cadence != -1) {
-			var cadenceText = Math.round(globalObject.cadence);
+		if(globalObj.cadence != -1) {
+			var cadenceText = Math.round(globalObj.cadence);
 			var cadenceDisplay = document.getElementById("cadence");
 			cadenceDisplay.innerHTML = cadenceText+"rpm";
 			dataArray[index]["cadence"] = cadenceText;
