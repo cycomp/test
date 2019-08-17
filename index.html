@@ -133,7 +133,7 @@
 </head>
 
 <body>
-<div class="whole_screen">
+<div class="whole_screen" id="window_block">
 	<div class="grid_container">
 		<div class="item1">
 				<h1>Speed(kph)</h1>
@@ -172,6 +172,7 @@
 			<h1>Record</h1>
 			<button type="button" id="record">Start Recording</button>
 			<button type="button" id="save">Save Data</button>
+			<h1 id="record_status">-</h1>
 		</div>
 		<div class="item10">
 			<h1>Right</h1>
@@ -185,26 +186,63 @@
 	//time in secs
 	//distance in km
 	//lat long in deg
-	var currentLat = 0;
-	var currentLong = 0;
-	var previousLat = 0;
-	var previousLong = 0;
-	var currentHR = 0;
-	var distance = 0;
-	var marginalDistance = 0;
-	var startTime = 0;
-	var totalTime = 0;
-	var stoppedTime = 0;
-	var movingTime = 0;
-	var dataArray = [];
-	var previousCrankRevs = -1;
-	var previousCrankTime = -1;
-	var cadence = -1;
+	var globalObj = {}
+	
+	globalObj.currentLat = 0;
+	globalObj.currentLong = 0;
+	globalObj.previousLat = 0;
+	globalObj.previousLong = 0;
+	globalObj.currentHR = 0;
+	globalObj.distance = 0;
+	globalObj.startTime = 0;
+	globalObj.totalTime = 0;
+	globalObj.stoppedTime = 0;
+	globalObj.movingTime = 0;
+	globalObj.previousCrankRevs = -1;
+	globalObj.previousCrankTime = -1;
+	globalObj.cadence = -1;
+	globalObj.hrPresent = false;
+	globalObj.gpsPresent = false;
+
+	dataArray = [];
+	
+	
+	
+	function saveData() {
+		localStorage.setItem("temp_globalObj") = JSON.stringify(globalObj);
+		localStorage.setItem("temp_dataArray") = JSON.stringify(dataArray);
+	}
+	
+	function connectHR() {
+		navigator.bluetooth.requestDevice({ filters: [{ services: ['heart_rate'] }] })
+			.then(device => device.gatt.connect())
+			.then(server => server.getPrimaryService('heart_rate'))
+			.then(service => service.getCharacteristic('heart_rate_measurement'))
+			.then(characteristic => characteristic.startNotifications())
+			.then(characteristic => {
+				characteristic.addEventListener('characteristicvaluechanged',
+												handleCharacteristicValueChanged);
+
+			})
+			.catch(error => {console.log(error);});
+	}
+	
+	function connectCadence() {
+		navigator.bluetooth.requestDevice({ filters: [{ services: ['cycling_speed_and_cadence'] }] })
+			.then(device => device.gatt.connect())
+			.then(server => server.getPrimaryService('cycling_speed_and_cadence'))
+			.then(service => service.getCharacteristic('csc_measurement'))
+			.then(characteristic => characteristic.startNotifications())
+			.then(characteristic => {
+				characteristic.addEventListener('characteristicvaluechanged',
+												handleCadenceValueChanged);
+
+			})
+			.catch(error => {console.log(error);});
+	}
+	
 
 	
-	var hrPresent = false;
-	var gpsPresent = false;
-
 	
 	if (navigator.geolocation) {
 		console.log("beginning location watch");
@@ -213,6 +251,27 @@
 		//geolocation not supported
 		console.log("geolocation not supported");
 	}
+	
+	document.addEventListener("DOMContentLoaded", function() {
+		if (localStorage.getItem("temp_globalObject") != null) {
+			globalObject = JSON.parse(localStorage.getItem("temp_globalObj"));
+			dataArray = JSON.parse(localStorage.getItem("temp_dataArray"));
+			
+			if(globalObject.hrPresent) {
+				connectHR();
+			}
+			
+			if(globalObject.cadence != -1) {
+				connectCadence();
+			}
+			
+			var recordStatus = document.getElementById("record_status");
+			
+			recordStatus.innerHTML = "Recording";
+			window.setInterval(recordData,1000);
+			window.setInterval(saveData,5000);
+		}
+	});
 	
 	function calcMarginalDistance(lat1, lon1, lat2, lon2) {
 		//lon = East/West - closer together as you get closer to the poles
@@ -227,9 +286,12 @@
 	
 	var recordButton = document.getElementById("record");
 	recordButton.addEventListener('click', function(event) {
-		if(gpsPresent || hrPresent) {
-			startTime = Math.floor(Date.now());
+		if(globalObj.gpsPresent || globalObj.hrPresent) {
+			globalObj.startTime = Math.floor(Date.now());
 			window.setInterval(recordData,1000);
+			window.setInterval(saveData,5000);
+			var recordStatus = document.getElementById("record_status");
+			recordStatus.innerHTML = "Recording";
 		} else {
 			alert("GPS or HR data needed to record")
 		}
@@ -239,25 +301,25 @@
 		var index = dataArray.length;
 		dataArray[index] = {};
 		dataArray[index]["timestamp"] = Math.floor(Date.now());
-		if(gpsPresent) {
+		if(globalObj.gpsPresent) {
 			//distance
-			dataArray[index]["lat"] = currentLat;
-			dataArray[index]["long"] = currentLong;
-			if (distance === 0) {
-				previousLat = currentLat;
-				previousLong = currentLong;
-				distance = 0.001;
+			dataArray[index]["lat"] = globalObj.currentLat;
+			dataArray[index]["long"] = globalObj.currentLong;
+			if (globalObj.distance === 0) {
+				globalObj.previousLat = globalObj.currentLat;
+				globalObj.previousLong = globalObj.currentLong;
+				globalObj.distance = 0.001;
 			} else {
-				marginalDistance = calcMarginalDistance(currentLat, currentLong, previousLat, previousLong);
-				distance = distance + marginalDistance;
+				var marginalDistance = calcMarginalDistance(globalObj.currentLat, globalObj.currentLong, globalObj.previousLat, globalObj.previousLong);
+				globalObj.distance = globalObj.distance + marginalDistance;
 			}
-			var distanceText = Math.round(distance*100)/100;
+			var distanceText = Math.round(globalObj.distance*100)/100;
 			dataArray[index]["distance"] = distanceText;
 			var distanceDisplay = document.getElementById("distance");
 			distanceDisplay.innerHTML = distanceText;
 			
 			//total time
-			totalTime = (Math.floor(Date.now()) - startTime)/1000;
+			globalObj.totalTime = (Math.floor(Date.now()) - globalObj.startTime)/1000;
 			var hrs = Math.floor(totalTimeSecs/3600);
 			var remainingSecs = totalTimeSecs % 3600;
 			var mins = Math.floor(remainingSecs/60);
@@ -268,14 +330,14 @@
 			
 			//stopped time
 			if (marginalDistance === 0) {
-				stoppedTime = stoppedTime + 1;
+				globalObj.stoppedTime = globalObj.stoppedTime + 1;
 			}
 			
 			//moving time
-			movingTime = totalTime - stoppedTime;
+			globalObj.movingTime = globalObj.totalTime - globalObj.stoppedTime;
 			
-			hrs = Math.floor(movingTime/3600);
-			remainingSecs = movingTime % 3600;
+			hrs = Math.floor(globalObj.movingTime/3600);
+			remainingSecs = globalObj.movingTime % 3600;
 			mins = Math.floor(remainingSecs/60);
 			secs = Math.floor(remainingSecs%60);
 			
@@ -284,20 +346,20 @@
 			
 			
 			//average speed
-			var averageSpeed = (distance/movingTime)*3600;
+			var averageSpeed = (globalObj.distance/globalObj.movingTime)*3600;
 			var averagespeedText = Math.floor(averageSpeed*100)/100;
 			
 			var averageSpeedDisplay = document.getElementById("avg_speed");
 			averageSpeedDisplay.innerHTML = averageSpeedText+"kph";
 		}
-		if(cadence != -1) {
-			var cadenceText = Math.round(cadence);
+		if(globalObject.cadence != -1) {
+			var cadenceText = Math.round(globalObject.cadence);
 			var cadenceDisplay = document.getElementById("cadence");
 			cadenceDisplay.innerHTML = cadenceText+"rpm";
 			dataArray[index]["cadence"] = cadenceText;
 		}
 		
-		if(hrPresent) {
+		if(globalObj.hrPresent) {
 			console.log(currentHR);
 			dataArray[index]["hr"] = currentHR;
 		}
@@ -364,34 +426,24 @@
 	cadenceButton.addEventListener('click', function(event) {
 		var info = document.getElementById("cadence");
 		info.innerHTML = "scanning...";
-		navigator.bluetooth.requestDevice({ filters: [{ services: ['cycling_speed_and_cadence'] }] })
-		.then(device => device.gatt.connect())
-		.then(server => server.getPrimaryService('cycling_speed_and_cadence'))
-		.then(service => service.getCharacteristic('csc_measurement'))
-		.then(characteristic => characteristic.startNotifications())
-		.then(characteristic => {
-			characteristic.addEventListener('characteristicvaluechanged',
-											handleCadenceValueChanged);
-
-		})
-		.catch(error => {console.log(error);});
+		
 	});
 	
 	function calculateCadence(crankRevs, crankTime) {
-		if (previousCrankRevs === -1) {
-			previousCrankRevs = crankRevs;
-			previousCrankTime = crankTime;
+		if (globalObject.previousCrankRevs === -1) {
+			globalObject.previousCrankRevs = crankRevs;
+			globalObject.previousCrankTime = crankTime;
 		} else {
-			var deltaRevs = crankRevs - previousCrankRevs;
-			if (crankTime > previousCrankTime) {
-				var deltaTime = crankTime - previousCrankTime;
+			var deltaRevs = crankRevs - globalObject.previousCrankRevs;
+			if (crankTime > globalObject.previousCrankTime) {
+				var deltaTime = crankTime - globalObject.previousCrankTime;
 			} else {
 				//uint16 rollover so add largest 16 bit number to new value
-				var deltaTime = (crankTime+0xFFFF) - previousCrankTime;
+				var deltaTime = (crankTime+0xFFFF) - globalObject.previousCrankTime;
 			}
-			cadence = (deltaRevs / (deltaTime/1024))*60
-			previousCrankRevs = crankRevs;
-			previousCrankTime = crankTime;
+			globalObject.cadence = (deltaRevs / (deltaTime/1024))*60
+			globalObject.previousCrankRevs = crankRevs;
+			globalObject.previousCrankTime = crankTime;
 		}
 	
 	
@@ -434,23 +486,13 @@
 	
 	}
 	
-	
+
 	
 	var button = document.getElementById("connect_hr");
 	button.addEventListener('click', function(event) {
 		var info = document.getElementById("hr_value");
 		info.innerHTML = "scanning...";
-		navigator.bluetooth.requestDevice({ filters: [{ services: ['heart_rate'] }] })
-		.then(device => device.gatt.connect())
-		.then(server => server.getPrimaryService('heart_rate'))
-		.then(service => service.getCharacteristic('heart_rate_measurement'))
-		.then(characteristic => characteristic.startNotifications())
-		.then(characteristic => {
-			characteristic.addEventListener('characteristicvaluechanged',
-											handleCharacteristicValueChanged);
-
-		})
-		.catch(error => {console.log(error);});
+		connectHR();
 	});
 	
 	function startLocationWatch() {
@@ -468,10 +510,10 @@
 		var speedText = document.getElementById("speed");
 		speedText.innerHTML = position.coords.speed*3.6;
 
-		currentLat = position.coords.latitude;
-		currentLong = position.coords.longitude;
+		globalObj.currentLat = position.coords.latitude;
+		globalObj.currentLong = position.coords.longitude;
 		
-		gpsPresent = true;
+		globalObj.gpsPresent = true;
 
 	}
 	
@@ -514,7 +556,7 @@
 
 		currentHR = hrNumber;
 		
-		hrPresent = true;
+		globalObj.hrPresent = true;
 
 	}
   
