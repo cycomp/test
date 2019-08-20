@@ -203,6 +203,8 @@
 	globalObj.cadence = -1;
 	globalObj.hrPresent = false;
 	globalObj.gpsPresent = false;
+	globalObj.recordTimerHandle = 0;
+	globalObj.saveTimerHandle = 0;
 
 	dataArray = [];
 	
@@ -254,7 +256,7 @@
 	
 	document.addEventListener("DOMContentLoaded", function() {
 		console.log("dom content loaded")
-		/*
+	
 		if (localStorage.getItem("temp_globalObj") != null) {
 			console.log("found temp files")
 			
@@ -264,20 +266,19 @@
 			console.log(globalObj)
 			
 			if(globalObj.hrPresent) {
-				connectHR();
+				//connectHR();
 			}
 			
 			if(globalObj.cadence != -1) {
-				connectCadence();
+				//connectCadence();
 			}
 			
 			var recordStatus = document.getElementById("record_status");
-			
 			recordStatus.innerHTML = "Recording";
-			window.setInterval(recordData,1000);
-			window.setInterval(saveData,5000);
+			
+			globalObj.recordTimerHandle = window.setInterval(recordData,1000);
+			globalObj.saveTimerHandle = window.setInterval(saveData,5000);
 		}
-		*/
 	});
 	
 	function calcMarginalDistance(lat1, lon1, lat2, lon2) {
@@ -295,8 +296,8 @@
 	recordButton.addEventListener('click', function(event) {
 		if(globalObj.gpsPresent || globalObj.hrPresent) {
 			globalObj.startTime = Math.floor(Date.now());
-			window.setInterval(recordData,1000);
-			window.setInterval(saveData,5000);
+			globalObj.recordTimerHandle = window.setInterval(recordData,1000);
+			globalObj.saveTimerHandle = window.setInterval(saveData,5000);
 			var recordStatus = document.getElementById("record_status");
 			recordStatus.innerHTML = "Recording";
 		} else {
@@ -420,6 +421,16 @@
 
 				downloadLink.click();
 			  }
+			  
+			  localStorage.removeItem("temp_globalObj"); 
+			  localStorage.removeItem("temp_dataArray");
+			  
+			  clearInterval(globalObj.recordTimerHandle);
+			  clearInterval(globalObj.saveTimerHandle);
+			  
+			  var recordStatus = document.getElementById("record_status");
+			  recordStatus.innerHTML = "Saved";
+			  
 			}
 		  } else {
 			alert('Your browser does not support HTML5 file saving.');
