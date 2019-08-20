@@ -224,7 +224,7 @@
 												handleCharacteristicValueChanged);
 
 			})
-			.catch(error => {console.log(error);});
+			.catch(error => {console.log("Name: "+error.name+"Message: "+error.message);});
 	}
 	
 	function connectCadence() {
@@ -253,15 +253,21 @@
 	}
 	
 	document.addEventListener("DOMContentLoaded", function() {
-		if (localStorage.getItem("temp_globalObject") != null) {
-			globalObject = JSON.parse(localStorage.getItem("temp_globalObj"));
+		console.log("dom content loaded")
+		/*
+		if (localStorage.getItem("temp_globalObj") != null) {
+			console.log("found temp files")
+			
+			globalObj = JSON.parse(localStorage.getItem("temp_globalObj"));
 			dataArray = JSON.parse(localStorage.getItem("temp_dataArray"));
 			
-			if(globalObject.hrPresent) {
+			console.log(globalObj)
+			
+			if(globalObj.hrPresent) {
 				connectHR();
 			}
 			
-			if(globalObject.cadence != -1) {
+			if(globalObj.cadence != -1) {
 				connectCadence();
 			}
 			
@@ -271,6 +277,7 @@
 			window.setInterval(recordData,1000);
 			window.setInterval(saveData,5000);
 		}
+		*/
 	});
 	
 	function calcMarginalDistance(lat1, lon1, lat2, lon2) {
@@ -352,16 +359,18 @@
 			var averageSpeedDisplay = document.getElementById("avg_speed");
 			averageSpeedDisplay.innerHTML = averageSpeedText+"kph";
 		}
+		
+		//cadence
 		if(globalObj.cadence != -1) {
 			var cadenceText = Math.round(globalObj.cadence);
 			var cadenceDisplay = document.getElementById("cadence");
 			cadenceDisplay.innerHTML = cadenceText+"rpm";
 			dataArray[index]["cadence"] = cadenceText;
 		}
-		
+		//heart rate
 		if(globalObj.hrPresent) {
-			console.log(currentHR);
-			dataArray[index]["hr"] = currentHR;
+			console.log(globalObj.currentHR);
+			dataArray[index]["hr"] = globalObj.currentHR;
 		}
 	}
 
@@ -430,20 +439,20 @@
 	});
 	
 	function calculateCadence(crankRevs, crankTime) {
-		if (globalObject.previousCrankRevs === -1) {
-			globalObject.previousCrankRevs = crankRevs;
-			globalObject.previousCrankTime = crankTime;
+		if (globalObj.previousCrankRevs === -1) {
+			globalObj.previousCrankRevs = crankRevs;
+			globalObj.previousCrankTime = crankTime;
 		} else {
-			var deltaRevs = crankRevs - globalObject.previousCrankRevs;
-			if (crankTime > globalObject.previousCrankTime) {
-				var deltaTime = crankTime - globalObject.previousCrankTime;
+			var deltaRevs = crankRevs - globalObj.previousCrankRevs;
+			if (crankTime > globalObj.previousCrankTime) {
+				var deltaTime = crankTime - globalObj.previousCrankTime;
 			} else {
 				//uint16 rollover so add largest 16 bit number to new value
-				var deltaTime = (crankTime+0xFFFF) - globalObject.previousCrankTime;
+				var deltaTime = (crankTime+0xFFFF) - globalObj.previousCrankTime;
 			}
-			globalObject.cadence = (deltaRevs / (deltaTime/1024))*60
-			globalObject.previousCrankRevs = crankRevs;
-			globalObject.previousCrankTime = crankTime;
+			globalObj.cadence = (deltaRevs / (deltaTime/1024))*60
+			globalObj.previousCrankRevs = crankRevs;
+			globalObj.previousCrankTime = crankTime;
 		}
 	
 	
@@ -554,7 +563,7 @@
 		var hrValue = document.getElementById("hr_value");
 		hrValue.innerHTML = hrNumber;		
 
-		currentHR = hrNumber;
+		globalObj.currentHR = hrNumber;
 		
 		globalObj.hrPresent = true;
 
