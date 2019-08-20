@@ -266,10 +266,12 @@
 			console.log(globalObj)
 			
 			if(globalObj.hrPresent) {
+				globalObj.hrPresent = false;
 				//connectHR();
 			}
 			
 			if(globalObj.cadence != -1) {
+				globalObj.cadence = -1;
 				//connectCadence();
 			}
 			
