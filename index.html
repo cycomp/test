@@ -374,7 +374,8 @@
 		//heart rate
 		if(globalObj.hrPresent === true) {
 			console.log(globalObj.currentHR);
-			
+			var hrText = document.getElementById("hr_value");
+			hrText.innerHTML = globalObj.currentHR;	
 			dataArray[index]["hr"] = globalObj.currentHR;
 		}
 	}
@@ -599,8 +600,7 @@
 
 		globalObj.currentHR = hrNumber;
 		
-		var hrText = document.getElementById("hr_value");
-		hrText.innerHTML = globalObj.currentHR;	
+
 		
 		globalObj.hrPresent = true;
 
