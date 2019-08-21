@@ -258,7 +258,7 @@
 		console.log("dom content loaded")
 	
 		if (localStorage.getItem("temp_globalObj") != null) {
-			console.log("found temp files")
+			alert("found temp files")
 			
 			globalObj = JSON.parse(localStorage.getItem("temp_globalObj"));
 			dataArray = JSON.parse(localStorage.getItem("temp_dataArray"));
@@ -275,9 +275,9 @@
 				//connectCadence();
 			}
 			
+			//currently automatically continues recording regardless of HR or GPS present
 			var recordStatus = document.getElementById("record_status");
 			recordStatus.innerHTML = "Recording";
-			
 			globalObj.recordTimerHandle = window.setInterval(recordData,1000);
 			globalObj.saveTimerHandle = window.setInterval(saveData,5000);
 		}
@@ -370,9 +370,14 @@
 			cadenceDisplay.innerHTML = cadenceText+"rpm";
 			dataArray[index]["cadence"] = cadenceText;
 		}
+		
 		//heart rate
 		if(globalObj.hrPresent) {
 			console.log(globalObj.currentHR);
+			
+			var hrText = document.getElementById("hr_value");
+			hrText.innerHTML = globalObj.currentHR;	
+			
 			dataArray[index]["hr"] = globalObj.currentHR;
 		}
 	}
@@ -426,9 +431,30 @@
 			  
 			  localStorage.removeItem("temp_globalObj"); 
 			  localStorage.removeItem("temp_dataArray");
+			  dataArray = [];
 			  
+			  	globalObj.currentLat = 0;
+				globalObj.currentLong = 0;
+				globalObj.previousLat = 0;
+				globalObj.previousLong = 0;
+				globalObj.currentHR = 0;
+				globalObj.distance = 0;
+				globalObj.startTime = 0;
+				globalObj.totalTime = 0;
+				globalObj.stoppedTime = 0;
+				globalObj.movingTime = 0;
+				globalObj.previousCrankRevs = -1;
+				globalObj.previousCrankTime = -1;
+				globalObj.cadence = -1;
+				globalObj.hrPresent = false;
+				globalObj.gpsPresent = false;
+
+				  
 			  clearInterval(globalObj.recordTimerHandle);
 			  clearInterval(globalObj.saveTimerHandle);
+
+  				globalObj.recordTimerHandle = 0;
+				globalObj.saveTimerHandle = 0;
 			  
 			  var recordStatus = document.getElementById("record_status");
 			  recordStatus.innerHTML = "Saved";
@@ -572,9 +598,7 @@
 		} else {
 			var hrNumber = value.getUint8(1);
 		}
-
-		var hrValue = document.getElementById("hr_value");
-		hrValue.innerHTML = hrNumber;		
+	
 
 		globalObj.currentHR = hrNumber;
 		
