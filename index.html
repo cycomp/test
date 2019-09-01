@@ -4,8 +4,8 @@
 <head>
   <meta charset="utf-8">
 
-  <title>Web Bluetooth Testpage</title>
-  <meta name="description" content="Web Bluetooth Testpage">
+  <title>Bike Computer</title>
+  <meta name="description" content="Browser Based Bike Computer">
   <meta name="author" content="Andrew Weighill">
 
   <style>
@@ -34,7 +34,7 @@
 		gap: 0.1%;
 		background-color: black;
 	}
-	.item1 {
+	.box1 {
 		background-color: white;
 		grid-column-start: 1;
 		grid-column-end: 2;
@@ -43,7 +43,7 @@
 		width: 100%;
 		height: 100%;
 	}
-	.item2 {
+	.box2 {
 		background-color: white;
 		grid-column-start: 2;
 		grid-column-end: 3;
@@ -52,16 +52,7 @@
 		width: 100%;
 		height: 100%;
 	}
-	.item3 {
-		background-color: white;
-		grid-column-start: 3;
-		grid-column-end: 4;
-		grid-row-start: 1;
-		grid-row-end: 2;
-		width: 100%;
-		height: 100%;
-	}
-	.item4 {
+	.box4 {
 		background-color: white;
 		grid-column-start: 1;
 		grid-column-end: 2;
@@ -70,7 +61,7 @@
 		width: 100%;
 		height: 100%;
 	}
-	.item5 {
+	.box5 {
 		background-color: white;
 		grid-column-start: 2;
 		grid-column-end: 3;
@@ -79,143 +70,292 @@
 		width: 100%;
 		height: 100%;
 	}
-	.item6 {
-		background-color: white;
-		grid-column-start: 3;
-		grid-column-end: 4;
-		grid-row-start: 2;
-		grid-row-end: 3;
-		width: 100%;
-		height: 100%;
-	}
-	.item7 {
-		background-color: white;
-		grid-column-start: 1;
-		grid-column-end: 2;
-		grid-row-start: 3;
-		grid-row-end: 4;
-		width: 100%;
-		height: 100%;
-	}
-	.item8 {
-		background-color: white;
-		grid-column-start: 1;
-		grid-column-end: 2;
-		grid-row-start: 4;
-		grid-row-end: 5;
-		width: 100%;
-		height: 100%;
-	}
-	.item9 {
-		background-color: white;
-		grid-column-start: 2;
-		grid-column-end: 3;
-		grid-row-start: 4;
-		grid-row-end: 5;
-		width: 100%;
-		height: 100%;
-	}
-	.item10 {
-		background-color: white;
-		grid-column-start: 3;
-		grid-column-end: 4;
-		grid-row-start: 4;
-		grid-row-end: 5;
-		width: 100%;
-		height: 100%;
-	}
-	
-	
-  
-  </style>
+	</style>
   
 
 </head>
-
 <body>
-<div class="whole_screen" id="window_block">
+<div class="whole_screen">
 	<div class="grid_container">
-		<div class="item1">
-				<h1>Speed(kph)</h1>
-				<h1 id="speed">-</h1>
+		<div class="box1">
+			<h1 id="1_title">-</h1>
+			<h1 id="1_units">-</h1>
+			<h1 id="1_value">-</h1>
 		</div>
-		<div class="item2">
-			<h1>Avg Speed(kph)</h1>
-			<h1 id="avg_speed">-</h1>
+		<div class="box2">
+			<h1 id="2_title">-</h1>
+			<h1 id="2_units">-</h1>
+			<h1 id="2_value">-</h1>
 		</div>
-		<div class="item3">
-			<h1>Distance(km)</h1>
-			<h1 id="distance">-</h1>
-		</div>
-		<div class="item4">
-			<h1>Moving Time</h1>
-			<h1 id="moving_time">0:0:0</h1>
-		</div>
-		<div class="item5">
-			<h1>Total Time</h1>
-			<h1 id="total_time">0:0:0</h1>
-		</div>
-		<div class="item6">
-			<h1>Cadence(rpm)</h1>
-			<button type="button" id="connect_cadence">Connect Cadence Sensor</button>
-			<h1 id="cadence">-</h1>
-		</div>
-		<div class="item7">
-			<h1>HR(bpm)</h1>
-			<button type="button" id="connect_hr">Connect HR Sensor</button>
-			<h1 id="hr_value">-</h1>
-		</div>
-		<div class="item8">
-			<h1>Left</h1>
-		</div>
-		<div class="item9">
+		<div class="box4">
 			<h1>Record</h1>
 			<button type="button" id="record">Start Recording</button>
-			<button type="button" id="save">Save Data</button>
-			<h1 id="record_status">-</h1>
 		</div>
-		<div class="item10">
-			<h1>Right</h1>
+		<div class="box5">
+			<button type="button" id="connect_sensor">Connect Sensors</button>
 		</div>
 	</div>
 </div>
 
+<script>
 
-  
-  <script>  
-	//time in secs
-	//distance in km
-	//lat long in deg
-	var globalObj = {}
-	
-	globalObj.currentLat = 0;
-	globalObj.currentLong = 0;
-	globalObj.previousLat = 0;
-	globalObj.previousLong = 0;
-	globalObj.currentHR = 0;
-	globalObj.distance = 0;
-	globalObj.startTime = 0;
-	globalObj.totalTime = 0;
-	globalObj.stoppedTime = 0;
-	globalObj.movingTime = 0;
-	globalObj.previousCrankRevs = -1;
-	globalObj.previousCrankTime = -1;
-	globalObj.cadence = -1;
-	globalObj.hrPresent = false;
-	globalObj.gpsPresent = false;
-	globalObj.recordTimerHandle = 0;
-	globalObj.saveTimerHandle = 0;
+	function Recorder() {
+		var tempArray = [];
+		var dataArray = [];
+		var recording = false;
+		var timerHandle = null;
+		var db;
+		
+		function recordData() {
+			tempArray["timestamp"] = Math.floor(Date.now());			
+			
+			var index = dataArray.length;
+			dataArray[index] = {};
+			
+			for (var title in tempArray) {
+				dataArray[index][title] = tempArray[title];
+			}
+			
+			//console.log(tempArray);
+			
+			//indexeddb
+			var transaction = db.transaction("tempData", "readwrite");
+			transaction.oncomplete = function(event) {
+				console.log("all done!");
+			}
+			
+			var objectStore = transaction.objectStore("tempData");
+			var request = objectStore.add(tempArray);
+			request.onsuccess = function(event) {
+				console.log("field added successfuly");
+			};
+		}
+		
+		function clearDB() {
+			var transaction = db.transaction("tempData", "readwrite");
+			transaction.oncomplete = function(event) {
+				console.log("objectStore Cleared!");
+			};
+			var objectStore = transaction.objectStore("tempData");
+			var request = objectStore.clear();
+		}
+		
+		function initialiseDB() {
+			//open database
+			console.log("openDB");
 
-	dataArray = [];
+			var request = window.indexedDB.open("tempStorageDB", 1);
+			
+			request.onerror = function(event) {
+				console.log(event.target.errorCode);
+			};
+			
+			request.onsuccess = function(event) {
+				db = event.target.result;
+				
+				var transaction = db.transaction("tempData", "readonly");
+				var objectStore = transaction.objectStore("tempData");
+				var request = objectStore.count();
+				request.onsuccess = function() {
+					console.log(request.result);
+					if (request.result > 0) {
+						var resume = confirm("Temporary data found. Resume previous recording?");
+						if (resume) {
+							//no action needed
+						} else {
+							var save = confirm("Save previous recording?")
+							if (save) {
+								saveFile();
+							} else {
+								clearDB();
+							}
+						}
+					}
+				};
+				
+			};
+			
+			
+			request.onupgradeneeded = function(event) {
+				console.log("onupgradeneeded");
+				
+				objectStore = event.currentTarget.result.createObjectStore("tempData", {autoIncrement : true});
+			};
+		}
+		
+		function saveFile() {
+			var dbDataArray = [];
+			
+			var transaction = db.transaction("tempData", "readwrite");
+			var objectStore = transaction.objectStore("tempData");
+			objectStore.getAll().onsuccess = function(event) {
+				dbDataArray = event.target.result;
+				console.log("dbDataArray length: " + dbDataArray.length);
+				console.log("dataArray length: "+dataArray.length);
+				console.dir(dbDataArray);
+				console.dir(dataArray);
+				
+				var gpxString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><gpx version=\"1.1\" creator=\"https://cycomp.github.io/\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:gpxdata=\"http://www.cluetrust.com/XML/GPXDATA/1/0\"><trk><name>Test Track</name><trkseg>";
+				var numPoints = dbDataArray.length;
+				var n;
+				var trkpt
+				var extensions;
+				for(n=0; n<numPoints; n++) {
+					var utcTimestamp = (new Date(dbDataArray[n]["timestamp"])).toISOString();
+					console.log(utcTimestamp);
+					trkpt = "<trkpt lat=\""+dbDataArray[n]["Latitude"]+"\" lon=\""+dbDataArray[n]["Longitude"]+"\"><time>"+utcTimestamp+"</time>";
+					if(dbDataArray[n]["Heart Rate"]) {
+						extensions = "<extensions><gpxdata:hr>"+dbDataArray[n]["Heart Rate"]+"</gpxdata:hr></extensions>";
+					} else {
+						extensions = "";
+					}
+					trkpt = trkpt + extensions + "</trkpt>";
+					gpxString = gpxString + trkpt;
+				}
+				gpxString = gpxString+"</trkseg></trk></gpx>";
+			
+				if ('Blob' in window) {
+					var fileName = prompt('Please enter file name to save', 'myride.gpx');
+					if (fileName) {
+						var textFileAsBlob = new Blob([gpxString], { type: 'text/plain' });
+
+						if ('msSaveOrOpenBlob' in navigator) {
+							navigator.msSaveOrOpenBlob(textFileAsBlob, fileName);
+						} else {
+							var downloadLink = document.createElement('a');
+							downloadLink.download = fileName;
+							downloadLink.innerHTML = 'Download File';
+							if ('webkitURL' in window) {
+								// Chrome allows the link to be clicked without actually adding it to the DOM.
+								downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+							} else {
+								// Firefox requires the link to be added to the DOM before it can be clicked.
+								downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+								downloadLink.onclick = destroyClickedElement;
+								downloadLink.style.display = 'none';
+								document.body.appendChild(downloadLink);
+							}
+							downloadLink.click();
+						}
+					}
+					clearDB();
+				} else {
+					alert('Your browser does not support HTML5 file saving.');
+				}
+			}	
+
+		}
+		
+		function toggleRecording() {
+			recording = !recording;
+			var recordButton = document.getElementById("record");
+			if (recording) {
+				initialiseDB();
+				timerHandle = setInterval(recordData, 1000);
+				recordButton.innerHTML = "Stop Recording";
+			} else {
+				clearInterval(timerHandle);
+				saveFile();
+				recordButton.innerHTML = "Start Recording";
+			}
+		}
+		
+		function receiveData(title, value) {
+			tempArray[title] = value;
+		}
+		
+		this.toggleRecordingService = function() {
+			toggleRecording();
+		}
+		
+		this.receiveDataService = function(title, value) {
+			receiveData(title, value);
+		}
 	
 	
-	
-	function saveData() {
-		localStorage.setItem("temp_globalObj", JSON.stringify(globalObj)); 
-		localStorage.setItem("temp_dataArray", JSON.stringify(dataArray));
 	}
 	
-	function connectHR() {
+	
+	
+	function Item() {
+		var box;
+		var title;
+		var units;
+
+		function displayMyself(value) {
+			var valueText = document.getElementById(box+"_value");
+			valueText.innerHTML = value;
+		}
+		
+		function initialiseMyself(new_box, new_title, new_units) {
+			box = new_box;
+			title = new_title;
+			units = new_units;
+
+			console.log(box, title, units);
+			if(box !== null) {
+				var titleText = document.getElementById(box+"_title");
+				titleText.innerHTML = title;
+				
+				var unitsText = document.getElementById(box+"_units");
+				unitsText.innerHTML = units;			
+			}
+
+		}
+		
+		this.initialise = function(box, title, units) {
+			initialiseMyself(box, title, units);
+		}
+		
+		this.updateValue = function(value) {
+			//console.log(title+": "+value);
+			if (myRecorder) {
+				myRecorder.receiveDataService(title, value);
+			}
+			if (box !== null) {
+				displayMyself(value);
+			}
+		}
+	}
+	
+	document.addEventListener("DOMContentLoaded", function() {
+		console.log("DOMContentLoaded");
+		myRecorder = new Recorder();
+		var recordButton = document.getElementById("record");
+		recordButton.addEventListener('click', function(event) {
+			myRecorder.toggleRecordingService();
+		});
+		
+		if (navigator.geolocation) {
+			console.log("beginning location watch");
+			startLocationWatch();
+		} else {
+			//geolocation not supported
+			console.log("geolocation not supported");
+		}
+	});
+
+	function handleCharacteristicValueChanged(event) {
+		var value = event.target.value;
+		let flags = value.getUint8(0);
+		
+		if (flags & 0x1) {
+			var rate16bits = true;
+		} else {
+			var rate16bits = false;
+		}
+		
+		if (rate16bits) {
+			var hrNumber = value.getUint16(1,true);
+		} else {
+			var hrNumber = value.getUint8(1);
+		}
+		
+		hrItem.updateValue(hrNumber);
+	}
+
+
+	function connectSensor() {
 		navigator.bluetooth.requestDevice({ filters: [{ services: ['heart_rate'] }] })
 			.then(device => device.gatt.connect())
 			.then(server => server.getPrimaryService('heart_rate'))
@@ -224,343 +364,42 @@
 			.then(characteristic => {
 				characteristic.addEventListener('characteristicvaluechanged',
 												handleCharacteristicValueChanged);
-
-			})
-			.catch(error => {console.log("Name: "+error.name+"Message: "+error.message);});
-	}
-	
-	function connectCadence() {
-		navigator.bluetooth.requestDevice({ filters: [{ services: ['cycling_speed_and_cadence'] }] })
-			.then(device => device.gatt.connect())
-			.then(server => server.getPrimaryService('cycling_speed_and_cadence'))
-			.then(service => service.getCharacteristic('csc_measurement'))
-			.then(characteristic => characteristic.startNotifications())
-			.then(characteristic => {
-				characteristic.addEventListener('characteristicvaluechanged',
-												handleCadenceValueChanged);
-
-			})
-			.catch(error => {console.log(error);});
-	}
-	
-
-	
-	
-	if (navigator.geolocation) {
-		console.log("beginning location watch");
-		startLocationWatch();
-	} else {
-		//geolocation not supported
-		console.log("geolocation not supported");
-	}
-	
-	document.addEventListener("DOMContentLoaded", function() {
-		console.log("dom content loaded")
-	
-		if (localStorage.getItem("temp_globalObj") != null) {
-			alert("found temp files")
-			
-			globalObj = JSON.parse(localStorage.getItem("temp_globalObj"));
-			dataArray = JSON.parse(localStorage.getItem("temp_dataArray"));
-			
-			console.log(globalObj)
-			
-			if(globalObj.hrPresent) {
-				globalObj.hrPresent = false;
-				//connectHR();
-			}
-			
-			if(globalObj.cadence != -1) {
-				globalObj.cadence = -1;
-				//connectCadence();
-			}
-			
-			//currently automatically continues recording regardless of HR or GPS present
-			var recordStatus = document.getElementById("record_status");
-			recordStatus.innerHTML = "Recording";
-			globalObj.recordTimerHandle = window.setInterval(recordData,1000);
-			globalObj.saveTimerHandle = window.setInterval(saveData,5000);
-		}
-	});
-	
-	function calcMarginalDistance(lat1, lon1, lat2, lon2) {
-		//lon = East/West - closer together as you get closer to the poles
-		var avgLatDegrees = (lat1+lat2)/2;
-		var avgLatRadians = (avgLatDegrees*Math.PI)/180;
-		var dx = 111.1949266 * (Math.cos(avgLatRadians)) * (lon1-lon2);
-		//lat = North/South - constant spacing
-		var dy = 111.1949266*(lat1-lat2);
-		var distance = Math.sqrt((dx*dx)+(dy*dy));	
-		return distance
-	}
-	
-	var recordButton = document.getElementById("record");
-	recordButton.addEventListener('click', function(event) {
-		if(globalObj.gpsPresent || globalObj.hrPresent) {
-			globalObj.startTime = Math.floor(Date.now());
-			globalObj.recordTimerHandle = window.setInterval(recordData,1000);
-			globalObj.saveTimerHandle = window.setInterval(saveData,5000);
-			var recordStatus = document.getElementById("record_status");
-			recordStatus.innerHTML = "Recording";
-		} else {
-			alert("GPS or HR data needed to record")
-		}
-	});
-	
-	function recordData() {
-		var index = dataArray.length;
-		dataArray[index] = {};
-		dataArray[index]["timestamp"] = Math.floor(Date.now());
-		if(globalObj.gpsPresent) {
-			//distance
-			dataArray[index]["lat"] = globalObj.currentLat;
-			dataArray[index]["long"] = globalObj.currentLong;
-			if (globalObj.distance === 0) {
-				globalObj.previousLat = globalObj.currentLat;
-				globalObj.previousLong = globalObj.currentLong;
-				globalObj.distance = 0.001;
-			} else {
-				var marginalDistance = calcMarginalDistance(globalObj.currentLat, globalObj.currentLong, globalObj.previousLat, globalObj.previousLong);
-				globalObj.distance = globalObj.distance + marginalDistance;
-			}
-			var distanceText = Math.round(globalObj.distance*100)/100;
-			dataArray[index]["distance"] = distanceText;
-			var distanceDisplay = document.getElementById("distance");
-			distanceDisplay.innerHTML = distanceText;
-			
-			//total time
-			globalObj.totalTime = (Math.floor(Date.now()) - globalObj.startTime)/1000;
-			var hrs = Math.floor(totalTimeSecs/3600);
-			var remainingSecs = totalTimeSecs % 3600;
-			var mins = Math.floor(remainingSecs/60);
-			var secs = Math.floor(remainingSecs%60);
-
-			var totalTimeDisplay = document.getElementById("total_time");
-			totalTimeDisplay.innerHTML = hrs+":"+mins+":"+secs;
-			
-			//stopped time
-			if (marginalDistance === 0) {
-				globalObj.stoppedTime = globalObj.stoppedTime + 1;
-			}
-			
-			//moving time
-			globalObj.movingTime = globalObj.totalTime - globalObj.stoppedTime;
-			
-			hrs = Math.floor(globalObj.movingTime/3600);
-			remainingSecs = globalObj.movingTime % 3600;
-			mins = Math.floor(remainingSecs/60);
-			secs = Math.floor(remainingSecs%60);
-			
-			var movingTimeDisplay = document.getElementById("moving_time");
-			movingTimeDisplay.innerHTML = hrs+":"+mins+":"+secs;
-			
-			
-			//average speed
-			var averageSpeed = (globalObj.distance/globalObj.movingTime)*3600;
-			var averagespeedText = Math.floor(averageSpeed*100)/100;
-			
-			var averageSpeedDisplay = document.getElementById("avg_speed");
-			averageSpeedDisplay.innerHTML = averageSpeedText+"kph";
-		}
-		
-		//cadence
-		if(globalObj.cadence != -1) {
-			var cadenceText = Math.round(globalObj.cadence);
-			var cadenceDisplay = document.getElementById("cadence");
-			cadenceDisplay.innerHTML = cadenceText+"rpm";
-			dataArray[index]["cadence"] = cadenceText;
-		}
-		
-		//heart rate
-		if(globalObj.hrPresent === true) {
-			console.log(globalObj.currentHR);
-			var hrText = document.getElementById("hr_value");
-			hrText.innerHTML = globalObj.currentHR;	
-			dataArray[index]["hr"] = globalObj.currentHR;
-		}
+				})
+			.catch(error => {console.log("Name: "+error.name+" Message: "+error.message);});
 	}
 
-	var saveButton = document.getElementById("save");
-	saveButton.addEventListener('click', function(event) {
-		//save data here
-		var gpxString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><gpx version=\"1.1\" creator=\"https://cycomp.github.io/web-bluetooth/\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:gpxdata=\"http://www.cluetrust.com/XML/GPXDATA/1/0\"><trk><name>Test Track</name><trkseg>";
-		var numPoints = dataArray.length;
-		var n;
-		var trkpt
-		var extensions;
-		for(n=0; n<numPoints; n++) {
-			var utcTimestamp = (new Date(dataArray[n]["timestamp"])).toISOString();
-			console.log(utcTimestamp);
-			trkpt = "<trkpt lat=\""+dataArray[n]["lat"]+"\" lon=\""+dataArray[n]["long"]+"\"><time>"+utcTimestamp+"</time>";
-			if(dataArray[n]["hr"]) {
-				extensions = "<extensions><gpxdata:hr>"+dataArray[n]["hr"]+"</gpxdata:hr></extensions>";
-			} else {
-				extensions = "";
-			}
-			trkpt = trkpt + extensions + "</trkpt>";
-			gpxString = gpxString + trkpt;
-		}
-		gpxString = gpxString+"</trkseg></trk></gpx>";
-		
-		if ('Blob' in window) {
-			var fileName = prompt('Please enter file name to save', 'myride.gpx');
-			if (fileName) {
-				var textFileAsBlob = new Blob([gpxString], { type: 'text/plain' });
-
-			  if ('msSaveOrOpenBlob' in navigator) {
-				navigator.msSaveOrOpenBlob(textFileAsBlob, fileName);
-			  } else {
-				var downloadLink = document.createElement('a');
-				downloadLink.download = fileName;
-				downloadLink.innerHTML = 'Download File';
-				if ('webkitURL' in window) {
-				  // Chrome allows the link to be clicked without actually adding it to the DOM.
-				  downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
-				} else {
-				  // Firefox requires the link to be added to the DOM before it can be clicked.
-				  downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
-				  downloadLink.onclick = destroyClickedElement;
-				  downloadLink.style.display = 'none';
-				  document.body.appendChild(downloadLink);
-				}
-
-				downloadLink.click();
-			  }
-			  
-			  localStorage.removeItem("temp_globalObj"); 
-			  localStorage.removeItem("temp_dataArray");
-			  dataArray = [];
-			  
-			  	globalObj.currentLat = 0;
-				globalObj.currentLong = 0;
-				globalObj.previousLat = 0;
-				globalObj.previousLong = 0;
-				globalObj.currentHR = 0;
-				globalObj.distance = 0;
-				globalObj.startTime = 0;
-				globalObj.totalTime = 0;
-				globalObj.stoppedTime = 0;
-				globalObj.movingTime = 0;
-				globalObj.previousCrankRevs = -1;
-				globalObj.previousCrankTime = -1;
-				globalObj.cadence = -1;
-				globalObj.hrPresent = false;
-				globalObj.gpsPresent = false;
-
-				  
-			  clearInterval(globalObj.recordTimerHandle);
-			  clearInterval(globalObj.saveTimerHandle);
-
-  				globalObj.recordTimerHandle = 0;
-				globalObj.saveTimerHandle = 0;
-			  
-			  var recordStatus = document.getElementById("record_status");
-			  recordStatus.innerHTML = "Saved";
-			  
-			}
-		  } else {
-			alert('Your browser does not support HTML5 file saving.');
-		  }
-		
-	});
-	
-	function destroyClickedElement(event) {
-		document.body.removeChild(event.target);
-	}
-
-	var cadenceButton = document.getElementById("connect_cadence");
-	cadenceButton.addEventListener('click', function(event) {
-		var info = document.getElementById("cadence");
-		info.innerHTML = "scanning...";
-		
-	});
-	
-	function calculateCadence(crankRevs, crankTime) {
-		if (globalObj.previousCrankRevs === -1) {
-			globalObj.previousCrankRevs = crankRevs;
-			globalObj.previousCrankTime = crankTime;
-		} else {
-			var deltaRevs = crankRevs - globalObj.previousCrankRevs;
-			if (crankTime > globalObj.previousCrankTime) {
-				var deltaTime = crankTime - globalObj.previousCrankTime;
-			} else {
-				//uint16 rollover so add largest 16 bit number to new value
-				var deltaTime = (crankTime+0xFFFF) - globalObj.previousCrankTime;
-			}
-			globalObj.cadence = (deltaRevs / (deltaTime/1024))*60
-			globalObj.previousCrankRevs = crankRevs;
-			globalObj.previousCrankTime = crankTime;
-		}
-	
-	
-	}
-	
-	
-	function handleCadenceValueChanged(event) {
-		var value = event.target.value;
-		//These flags define which data fields are present in the Characteristic value.
-		//Bit 0 true Wheel Revolution Data Present
-		//Bit 1 true Crank Revolution Data Present
-		let flags = value.getUint8(0);
-		
-		if (flags & 0x1) {
-			var wheelRevolutionData = true;
-		} else {
-			var wheelRevolutionData = false;
-		}
-		if (flags & 0x2) {
-			var crankRevolutionData = true;
-		} else {
-			var crankRevolutionData = false;
-		}
-		
-		if (wheelRevolutionData && crankRevolutionData) {
-			//7 byte offset - 1 byte for the flags, 6 bytes for the wheel revolution data
-			var cumulativeCrankRevolutions = value.getUint16(7, true);
-			//in 1/1024s of a second
-			var lastCrankEvent = value.getUint16(9, true);
-			calculateCadence(cumulativeCrankRevolutions, lastCrankEvent);
-		} else if (crankRevolutionData) {
-			//1 byte offset - 1 byte for the flags
-			var cumulativeCrankRevolutions = value.getUint16(1, true);
-			//in 1/1024s of a second
-			var lastCrankEvent = value.getUint16(3, true);
-			calculateCadence(cumulativeCrankRevolutions, lastCrankEvent);
-		}
-		
-		
-	
-	}
-	
-
-	
-	var button = document.getElementById("connect_hr");
+	var button = document.getElementById("connect_sensor");
 	button.addEventListener('click', function(event) {
-		var info = document.getElementById("hr_value");
-		info.innerHTML = "scanning...";
-		connectHR();
+		connectSensor();
+		hrItem = new Item();
+		hrItem.initialise("1", "Heart Rate", "bpm");
 	});
+
+
 	
 	function startLocationWatch() {
-		//start location watch
 		var options = {
 						enableHighAccuracy : true,
 						timeout : Infinity,
 						maximumAge : 0
 					};
 		navigator.geolocation.watchPosition(showPosition, showError, options);
+		
+		speedItem = new Item();
+		speedItem.initialise("2", "Speed", "kph");
+		
+		latItem = new Item();
+		latItem.initialise(null, "Latitude", "degrees");
+		
+		
+		longItem = new Item();
+		longItem.initialise(null, "Longitude", "degrees");
 	}
 	
 	function showPosition(position) {	
-		console.log("showPosition")
-		var speedText = document.getElementById("speed");
-		speedText.innerHTML = position.coords.speed*3.6;
-
-		globalObj.currentLat = position.coords.latitude;
-		globalObj.currentLong = position.coords.longitude;
-		
-		globalObj.gpsPresent = true;
-
+		speedItem.updateValue(position.coords.speed*3.6);
+		latItem.updateValue(position.coords.latitude);
+		longItem.updateValue(position.coords.longitude);
 	}
 	
 	function showError(error) {
@@ -581,34 +420,5 @@
 	}
 	
 	
-	function handleCharacteristicValueChanged(event) {
-		var value = event.target.value;
-		let flags = value.getUint8(0);
-		
-		if (flags & 0x1) {
-			var rate16bits = true;
-		} else {
-			var rate16bits = false;
-		}
-		
-		if (rate16bits) {
-			var hrNumber = value.getUint16(1,true);
-		} else {
-			var hrNumber = value.getUint8(1);
-		}
-	
 
-		globalObj.currentHR = hrNumber;
-		
-
-		
-		globalObj.hrPresent = true;
-
-	}
-  
-  
-  
-  
-  </script>
-</body>
-</html>
+</script>
