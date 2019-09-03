@@ -52,6 +52,15 @@
 		width: 100%;
 		height: 100%;
 	}
+	.box3 {
+		background-color: white;
+		grid-column-start: 3;
+		grid-column-end: 4;
+		grid-row-start: 1;
+		grid-row-end: 2;
+		width: 100%;
+		height: 100%;
+	}
 	.box4 {
 		background-color: white;
 		grid-column-start: 1;
@@ -87,6 +96,11 @@
 			<h1 id="2_units">-</h1>
 			<h1 id="2_value">-</h1>
 		</div>
+		<div class="box3">
+			<h1 id="3_title">-</h1>
+			<h1 id="3_units">-</h1>
+			<h1 id="3_value">-</h1>
+		</div>
 		<div class="box4">
 			<h1>Record</h1>
 			<button type="button" id="record">Start Recording</button>
@@ -121,13 +135,13 @@
 			//indexeddb
 			var transaction = db.transaction("tempData", "readwrite");
 			transaction.oncomplete = function(event) {
-				console.log("all done!");
+				//console.log("all done!");
 			}
 			
 			var objectStore = transaction.objectStore("tempData");
 			var request = objectStore.add(tempArray);
 			request.onsuccess = function(event) {
-				console.log("field added successfuly");
+				//console.log("field added successfuly");
 			};
 		}
 		
@@ -138,6 +152,21 @@
 			};
 			var objectStore = transaction.objectStore("tempData");
 			var request = objectStore.clear();
+		}
+		
+		function retrieveCurrentTotals(index) {
+			var transaction = db.transaction("tempData", "readonly");
+			var objectStore = transaction.objectStore("tempData");
+			objectStore.openCursor(null, "prev").onsuccess = function(event) {
+				var cursor = event.target.result
+				if (cursor) {
+					console.log("Key "+cursor.key)
+					console.dir(cursor.value);
+					var currentTotals = cursor.value;
+					var distance = currentTotals["Distance"];
+					myDistanceCalculator.addRetrievedDistanceService(distance);
+				}
+			}
 		}
 		
 		function initialiseDB() {
@@ -161,7 +190,8 @@
 					if (request.result > 0) {
 						var resume = confirm("Temporary data found. Resume previous recording?");
 						if (resume) {
-							//no action needed
+							//fetch latest distance value and send it to myDistanceCalculator
+							retrieveCurrentTotals(request.result);
 						} else {
 							var save = confirm("Save previous recording?")
 							if (save) {
@@ -275,6 +305,51 @@
 	
 	}
 	
+	function DistanceCalculator() {
+		var previousLat = null;
+		var previousLon = null;
+		var totalDistance = 0;
+		
+		function addRetrievedDistance (distance) {
+			totalDistance = totalDistance + distance;
+			distanceItem.updateValue(totalDistance);
+		}
+		
+		function calcDistance(currentLat, currentLon) {
+			console.log("currentLat: "+currentLat)
+			console.log("currentLat: "+currentLon)
+			console.log("previousLat: "+previousLat)
+			console.log("previousLon: "+previousLon)
+			
+			if (previousLat !== null) {
+				//lon = East/West - closer together as you get closer to the poles
+				var avgLatDegrees = (currentLat+previousLat)/2;
+				var avgLatRadians = (avgLatDegrees*Math.PI)/180;
+				var dx = 111.1949266 * (Math.cos(avgLatRadians)) * (currentLon-previousLon);
+				//lat = North/South - constant spacing
+				var dy = 111.1949266*(currentLat-previousLat);
+				var distance = Math.sqrt((dx*dx)+(dy*dy));
+				totalDistance = totalDistance+distance;
+				distanceItem.updateValue(totalDistance);
+			}
+			//update previous lat/lon values
+			previousLat = currentLat;
+			previousLon = currentLon;
+
+		}
+		
+		this.calcDistanceService = function(lat, lon) {
+			calcDistance(lat, lon);
+		}
+		
+		this.addRetrievedDistanceService = function(distance) {
+			addRetrievedDistance(distance);
+		}
+		
+
+	
+	}
+	
 	
 	
 	function Item() {
@@ -283,8 +358,9 @@
 		var units;
 
 		function displayMyself(value) {
+			var roundedValue = Math.round(value*100)/100;
 			var valueText = document.getElementById(box+"_value");
-			valueText.innerHTML = value;
+			valueText.innerHTML = roundedValue;
 		}
 		
 		function initialiseMyself(new_box, new_title, new_units) {
@@ -324,7 +400,12 @@
 		var recordButton = document.getElementById("record");
 		recordButton.addEventListener('click', function(event) {
 			myRecorder.toggleRecordingService();
+			myDistanceCalculator = new DistanceCalculator();
 		});
+		
+		distanceItem = new Item();
+		distanceItem.initialise("3", "Distance", "km" );
+		console.log("hello");
 		
 		if (navigator.geolocation) {
 			console.log("beginning location watch");
@@ -394,12 +475,22 @@
 		
 		longItem = new Item();
 		longItem.initialise(null, "Longitude", "degrees");
+		
+
+		
 	}
 	
 	function showPosition(position) {	
 		speedItem.updateValue(position.coords.speed*3.6);
+		
 		latItem.updateValue(position.coords.latitude);
 		longItem.updateValue(position.coords.longitude);
+		
+		if (typeof myDistanceCalculator !== "undefined") {
+			myDistanceCalculator.calcDistanceService(position.coords.latitude, position.coords.longitude);		
+		} else {
+			console.log("mydistancecalculator not created yet");
+		}
 	}
 	
 	function showError(error) {
